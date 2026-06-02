@@ -1,32 +1,32 @@
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
-// Configure the S3 client for your storage provider
 const s3 = new S3Client({
-    endpoint: 'https://your-s3-compatible-endpoint.com', // Replace with your storage endpoint
-    region: 'your-region', // Replace with your region
-    credentials: {
-        accessKeyId: 'your-access-key-id', // Replace with your Access Key ID
-        secretAccessKey: 'your-secret-access-key' // Replace with your Secret Access Key
-    }
+  region: process.env.S3_REGION || 'us-east-1',
+  ...(process.env.S3_ENDPOINT ? { endpoint: process.env.S3_ENDPOINT } : {}),
+  credentials: {
+    accessKeyId: process.env.S3_ACCESS_KEY_ID,
+    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY
+  },
+  // Some S3-compatible providers, such as MinIO, require path-style URLs.
+  forcePathStyle: process.env.S3_FORCE_PATH_STYLE === 'true'
 });
 
-// Function to generate a pre-signed URL
-async function generatePresignedUrl(bucketName, fileName) {
-    const command = new PutObjectCommand({
-        Bucket: bucketName, // Name of your bucket
-        Key: fileName, // Name of the file to upload
-        ContentType: 'application/pdf' // Specify the file type
-    });
+async function generatePresignedUrl(bucketName, objectKey) {
+  const command = new PutObjectCommand({
+    Bucket: bucketName,
+    Key: objectKey,
+    ContentType: 'application/pdf',
+    ContentDisposition: 'inline'
+  });
 
-    try {
-        const url = await getSignedUrl(s3, command, { expiresIn: 3600 }); // URL valid for 1 hour. Adjust expiresIn as needed
-        console.log('Pre-signed URL:', url);
-        return url;
-    } catch (error) {
-        console.error('Error generating Pre-Signed URL:', error);
-    }
+  const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+  console.log(url);
+  return url;
 }
 
-// Example usage
-generatePresignedUrl('your-bucket-name', `document-${Date.now()}.pdf`);
+generatePresignedUrl('your-bucket-name', `pdfbolt/document-${Date.now()}.pdf`)
+  .catch((error) => {
+    console.error('Error generating pre-signed URL:', error);
+    process.exit(1);
+  });

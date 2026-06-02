@@ -1,45 +1,47 @@
-# 🛠️ Generate Pre-Signed URL for S3-Compatible Storage
+# Generate a Pre-signed URL for S3-Compatible Storage
 
-Welcome to the **Generate Pre-Signed URL** repository! This project demonstrates how to generate a pre-signed URL for uploading files to an S3-compatible storage service.
+This example generates an HTTPS pre-signed `PUT` URL for uploading a PDF to an S3-compatible bucket. Use the generated URL as PDFBolt's `customS3PresignedUrl` value.
 
-## 🌟 What’s Included?
+## Install
 
-This repository contains an easy-to-use Node.js script that generates a pre-signed URL. You can use this URL to allow file uploads to your S3-compatible storage, such as AWS S3, DigitalOcean Spaces, or MinIO, and more — without exposing your storage credentials.
-
-### 🚀 Getting Started
-
-#### 1. Clone the Repository
-
-Clone this repository and navigate into the project directory:
-
-```
-git clone https://github.com/pdfbolt/generate-s3-presigned-url.git
-```
-
-#### 2. Install Dependencies
-
-This project uses AWS SDK v3 to interact with your S3-compatible storage. Install the required dependencies:
-
-```
+```bash
 npm install
 ```
 
-### 🔧 Usage
+## Configure
 
-#### 3. Configure Your S3 Client
+Set your storage credentials as environment variables:
 
-Open `generatePresignedUrl.js` and replace the placeholders with your S3-compatible storage details.
-
-#### 4. Generate a Pre-Signed URL
-
-Run the script to generate a pre-signed URL:
-
-```
+```bash
+S3_REGION=us-east-1 \
+S3_ACCESS_KEY_ID=your-access-key-id \
+S3_SECRET_ACCESS_KEY=your-secret-access-key \
 node generatePresignedUrl.js
 ```
 
-The generated URL will be printed in the terminal. Use this URL to securely upload files to your S3 bucket.
+For S3-compatible providers other than AWS S3, also set `S3_ENDPOINT`:
 
-### 📖 Learn More
+```bash
+S3_REGION=us-east-1 \
+S3_ENDPOINT=https://your-s3-compatible-endpoint.com \
+S3_ACCESS_KEY_ID=your-access-key-id \
+S3_SECRET_ACCESS_KEY=your-secret-access-key \
+node generatePresignedUrl.js
+```
 
-For a detailed walkthrough and more information, check out the [PDFBolt Documentation](https://pdfbolt.com/docs/s3-bucket-upload).
+For providers that require path-style URLs, set `S3_FORCE_PATH_STYLE=true`.
+
+## What the URL Allows
+
+The generated URL allows a single `PUT` upload for the configured bucket and object key. It is signed with:
+
+```http
+Content-Type: application/pdf
+Content-Disposition: inline
+```
+
+PDFBolt sends these headers when uploading the generated PDF to your pre-signed URL.
+
+## Learn More
+
+See the [PDFBolt S3 bucket upload documentation](https://pdfbolt.com/docs/s3-bucket-upload) for the full integration guide.
